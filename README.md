@@ -1,3 +1,24 @@
+# Steps
+
+1. Download zip file on [blender website](https://www.blender.org/download/) and unzip it to any path you want, say $BLENDER.
+
+2. git clone this repo into any path you want.
+
+3. ```cd clevr-dataset-gen```
+
+4. ```export PATH=$BLENDER:$PATH```
+
+5. ```echo $PWD/image_generation >> $BLENDER/$VERSION/python/lib/python3.5/site-packages/clevr.pth```
+
+6. ```cd image_generation```
+
+7. Modify the data/properties.json file and delete the "sizes": "small" term, only keep the "large" term.
+
+8. ```blender --background --python render_images.py --num_images 100 --min_dist 0.2 --min_pixels_per_object 25 --max_retries 5 --min_objects 5 --max_objects 5 --width 56 --height 56 --start_idx 0 --use_gpu 0```
+
+
+
+
 # CLEVR Dataset Generation
 
 This is the code used to generate the [CLEVR dataset](http://cs.stanford.edu/people/jcjohns/clevr/) as described in the paper:
