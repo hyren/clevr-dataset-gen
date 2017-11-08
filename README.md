@@ -14,7 +14,7 @@
 
 7. Modify the data/properties.json file and delete the "sizes": "small" term, only keep the "large" term.
 
-8. ```blender --background --python render_images.py --num_images 100 --min_dist 0.2 --min_pixels_per_object 25 --max_retries 5 --min_objects 5 --max_objects 5 --width 56 --height 56 --start_idx 0 --use_gpu 0```
+8. ```blender --background --python render_images.py -- --num_images 100 --min_dist 0.2 --min_pixels_per_object 25 --max_retries 5 --min_objects 5 --max_objects 5 --width 56 --height 56 --start_idx 0 --use_gpu 0```
 
 
 
