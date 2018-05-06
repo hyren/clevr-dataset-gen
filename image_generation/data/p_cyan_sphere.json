@@ -1,0 +1,15 @@
+{
+  "shapes": {
+    "sphere": "Sphere"
+  },
+  "colors": {
+    "cyan": [41, 208, 208]
+  },
+  "materials": {
+    "rubber": "Rubber",
+    "metal": "MyMetal"
+  },
+  "sizes": {
+    "large": 1.5
+  }
+}

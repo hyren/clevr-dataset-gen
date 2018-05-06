@@ -9,6 +9,7 @@ from __future__ import print_function
 import math, sys, random, argparse, json, os, tempfile
 from datetime import datetime as dt
 from collections import Counter
+import time
 
 """
 Renders random scenes using Blender, each with with a random number of objects;
@@ -170,6 +171,7 @@ def main(args):
     os.makedirs(args.output_blend_dir)
   
   all_scene_paths = []
+  start_time = time.time()
   for i in range(args.num_images):
     img_path = img_template % (i + args.start_idx)
     scene_path = scene_template % (i + args.start_idx)
@@ -186,6 +188,7 @@ def main(args):
       output_scene=scene_path,
       output_blendfile=blend_path,
     )
+  print (time.time() - start_time)
 
   # After rendering all images, combine the JSON files for each scene into a
   # single JSON file.

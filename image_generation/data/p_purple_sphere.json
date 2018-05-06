@@ -1,0 +1,15 @@
+{
+  "shapes": {
+    "sphere": "Sphere"
+  },
+  "colors": {
+    "purple": [129, 38, 192]
+  },
+  "materials": {
+    "rubber": "Rubber",
+    "metal": "MyMetal"
+  },
+  "sizes": {
+    "large": 1.5
+  }
+}
