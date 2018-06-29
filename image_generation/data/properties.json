@@ -2,23 +2,33 @@
   "shapes": {
     "cube": "SmoothCube_v2",
     "sphere": "Sphere",
-    "cylinder": "SmoothCylinder"
+    "cylinder": "Cylinder",
+    "cone": "Cone",
+    "torus": "Torus",
+    "monkey": "Monkey",
+    "ladder": "Ladder",
+    "frustum": "Frustum",
+    "goblet": "Goblet",
+    "trunk": "Trunk",
+    "dcone": "DCone",
+    "hourglass": "Hourglass"
   },
   "colors": {
     "gray": [87, 87, 87],
     "red": [173, 35, 35],
     "blue": [42, 75, 215],
     "green": [29, 105, 20],
-    "brown": [129, 74, 25],
+    "brown": [98, 49, 7],
     "purple": [129, 38, 192],
     "cyan": [41, 208, 208],
-    "yellow": [255, 238, 51]
+    "yellow": [255, 238, 51],
+    "olive": [128, 128, 0],
+    "lime": [51, 255, 153]
   },
   "materials": {
-    "rubber": "Rubber",
-    "metal": "MyMetal"
+    "rubber": "Rubber"
   },
   "sizes": {
-    "large": 1.5
+    "large": 1.9
   }
 }

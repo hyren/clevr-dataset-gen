@@ -1,0 +1,14 @@
+{
+  "shapes": {
+    "cone": "Cone"
+  },
+  "colors": {
+    "brown": [129, 74, 25]
+  },
+  "materials": {
+    "rubber": "Rubber"
+  },
+  "sizes": {
+    "large": 1.5
+  }
+}

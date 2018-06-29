@@ -10,6 +10,9 @@ import math, sys, random, argparse, json, os, tempfile
 from datetime import datetime as dt
 from collections import Counter
 import time
+import itertools
+import numpy as np
+
 
 """
 Renders random scenes using Blender, each with with a random number of objects;
@@ -153,9 +156,18 @@ parser.add_argument('--render_tile_size', default=256, type=int,
          "rendering may achieve better performance using smaller tile sizes " +
          "while larger tile sizes may be optimal for GPU-based rendering.")
 
+parser.add_argument('--gen_list', default='red_sphere.blue_cube',
+    help="The directory where output images will be stored. It will be " +
+         "created if it does not exist.")
+
+
 def main(args):
-  print (args.start_idx)
   num_digits = 6
+  args.output_image_dir = '../dataset/%s/images/'%(args.gen_list)
+  args.output_scene_dir = '../dataset/%s/scenes/'%(args.gen_list)
+  args.output_scene_file = '../dataset/%s/CLEVR_scenes.json'%(args.gen_list)
+  args.properties_json = 'data/properties.json'
+  # args.properties_json = 'data/%s.json'%(args.gen_list)
   prefix = '%s_%s_' % (args.filename_prefix, args.split)
   img_template = '%s%%0%dd.png' % (prefix, num_digits)
   scene_template = '%s%%0%dd.json' % (prefix, num_digits)
@@ -173,6 +185,8 @@ def main(args):
   
   all_scene_paths = []
   start_time = time.time()
+  num_features = args.gen_list.split('.')
+  assert args.min_objects == args.max_objects and args.min_objects == len(num_features)
   for i in range(args.num_images):
     img_path = img_template % (i + args.start_idx)
     scene_path = scene_template % (i + args.start_idx)
@@ -182,6 +196,7 @@ def main(args):
       blend_path = blend_template % (i + args.start_idx)
     num_objects = random.randint(args.min_objects, args.max_objects)
     render_scene(args,
+      gen_list=args.gen_list,
       num_objects=num_objects,
       output_index=(i + args.start_idx),
       output_split=args.split,
@@ -212,6 +227,7 @@ def main(args):
 
 
 def render_scene(args,
+    gen_list,
     num_objects=5,
     output_index=0,
     output_split='none',
@@ -311,7 +327,7 @@ def render_scene(args,
       bpy.data.objects['Lamp_Fill'].location[i] += rand(args.fill_light_jitter)
 
   # Now make some random objects
-  objects, blender_objects = add_random_objects(scene_struct, num_objects, args, camera)
+  objects, blender_objects = add_random_objects(scene_struct, num_objects, args, camera, gen_list)
 
   # Render the scene and dump the scene data structure
   scene_struct['objects'] = objects
@@ -330,7 +346,7 @@ def render_scene(args,
     bpy.ops.wm.save_as_mainfile(filepath=output_blendfile)
 
 
-def add_random_objects(scene_struct, num_objects, args, camera):
+def add_random_objects(scene_struct, num_objects, args, camera, gen_list):
   """
   Add random objects to the current blender scene
   """
@@ -354,6 +370,9 @@ def add_random_objects(scene_struct, num_objects, args, camera):
   positions = []
   objects = []
   blender_objects = []
+  assert num_objects == 2, "Only Generate Combinations"
+  gen_config = gen_list.split('.')
+  gen_config = [k.split('_') for k in gen_config]
   for i in range(num_objects):
     # Choose a random size
     size_name, r = random.choice(size_mapping)
@@ -369,13 +388,16 @@ def add_random_objects(scene_struct, num_objects, args, camera):
       if num_tries > args.max_retries:
         for obj in blender_objects:
           utils.delete_object(obj)
-        return add_random_objects(scene_struct, num_objects, args, camera)
-      x = random.uniform(-3, 3)
-      y = random.uniform(-3, 3)
-      # random_noise = -1#random.uniform(-1.4, 0)
-      # y += random_noise
-      # x -= random_noise
-
+        return add_random_objects(scene_struct, num_objects, args, camera, gen_list)
+      if i == 0:
+        x = random.uniform(-2.5, -0.3)
+      else:
+        x = random.uniform(0.3, 2.5)
+      # x = random.uniform(-3, 3)
+      y = x#random.uniform(-0.2, 0.2)#random.uniform(-3, 3)
+      rn = random.uniform(0.5*(np.abs(x)-0.3)-2.1, 0.1)
+      y += rn
+      x -= rn
       # Check to make sure the new object is further than min_dist from all
       # other objects, and further than margin along the four cardinal directions
       dists_good = True
@@ -410,22 +432,26 @@ def add_random_objects(scene_struct, num_objects, args, camera):
       color_name = random.choice(color_choices)
       obj_name = [k for k, v in object_mapping if v == obj_name_out][0]
       rgba = color_name_to_rgba[color_name]
-
     
-    print (color_name, obj_name)
-    print (obj_name_out)
-    # color_name = 'red'
-    # rgba = color_name_to_rgba['red']
-    # obj_name_out = 'sphere'
-    # obj_name = 'Sphere'
+    # print (obj_name, obj_name_out, color_name, rgba)
+    # abc
+    color_name = gen_config[i][0]
+    obj_name = properties['shapes'][gen_config[i][1]]
+    obj_name_out = gen_config[i][1]
+    rgba = color_name_to_rgba[color_name]
 
+    print (color_name, obj_name)
+    # abc
+
+      
     # For cube, adjust the size a bit
-    if obj_name == 'Cube':
+    if obj_name == 'cube':
+      assert False
       r /= math.sqrt(2)
 
     # Choose random orientation for the object.
-    theta = 45.0#360.0 * random.random()
-    
+    theta = 45.#360.0 * random.random()
+
     # Actually add the object to the scene
     utils.add_object(args.shape_dir, obj_name, r, (x, y), theta=theta)
     obj = bpy.context.object
@@ -456,7 +482,7 @@ def add_random_objects(scene_struct, num_objects, args, camera):
     print('Some objects are occluded; replacing objects')
     for obj in blender_objects:
       utils.delete_object(obj)
-    return add_random_objects(scene_struct, num_objects, args, camera)
+    return add_random_objects(scene_struct, num_objects, args, camera, gen_list)
 
   return objects, blender_objects
 

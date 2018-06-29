@@ -1,0 +1,16 @@
+{
+  "shapes": {
+    "cube": "SmoothCube_v2",
+    "sphere": "Sphere"
+  },
+  "colors": {
+    "red": [173, 35, 35],
+    "yellow": [255, 238, 51]
+  },
+  "materials": {
+    "rubber": "Rubber"
+  },
+  "sizes": {
+    "large": 1.7
+  }
+}

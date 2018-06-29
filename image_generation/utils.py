@@ -87,16 +87,33 @@ def add_object(object_dir, name, scale, loc, theta=0):
   # First figure out how many of this object are already in the scene so we can
   # give the new object a unique name
   count = 0
+  # print ('name =', name)
   for obj in bpy.data.objects:
+    # print (obj.name)
     if obj.name.startswith(name):
       count += 1
+  # print ('count =',count)
+
+  # print ("hello1")
+  # for i in bpy.data.objects:
+  #   print (i.name)
 
   filename = os.path.join(object_dir, '%s.blend' % name, 'Object', name)
+  # print ('filename =', filename)
   bpy.ops.wm.append(filename=filename)
 
   # Give it a new name to avoid conflicts
   new_name = '%s_%d' % (name, count)
+  # print (bpy.data.objects[name].name)
+  # print ("hello2")
+  # for i in bpy.data.objects:
+  #   print (i.name)
+
   bpy.data.objects[name].name = new_name
+
+  # print ("hello3")
+  # for i in bpy.data.objects:
+  #   print (i.name)
 
   # Set the new object as active, then rotate, scale, and translate it
   x, y = loc
