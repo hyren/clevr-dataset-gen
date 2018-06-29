@@ -10,6 +10,7 @@ import math, sys, random, argparse, json, os, tempfile
 from datetime import datetime as dt
 from collections import Counter
 import time
+import itertools
 
 """
 Renders random scenes using Blender, each with with a random number of objects;
@@ -153,9 +154,13 @@ parser.add_argument('--render_tile_size', default=256, type=int,
          "rendering may achieve better performance using smaller tile sizes " +
          "while larger tile sizes may be optimal for GPU-based rendering.")
 
-# parser.add_argument('--gen_list', default='../output/images/',
-#     help="The directory where output images will be stored. It will be " +
-#          "created if it does not exist.")
+parser.add_argument('--no_list', default='red.blue',
+    help="The directory where output images will be stored. It will be " +
+         "created if it does not exist.")
+parser.add_argument('--excp_list', default='red_sphere.blue_cube',
+    help="The directory where output images will be stored. It will be " +
+         "created if it does not exist.")
+
 
 def main(args):
   num_digits = 6
@@ -176,7 +181,41 @@ def main(args):
   
   all_scene_paths = []
   start_time = time.time()
-  for i in range(args.num_images):
+  with open(args.properties_json, 'r') as f:
+    properties = json.load(f)
+  assert args.min_objects == args.max_objects and args.min_objects == 2
+  universal_set_color = list(itertools.product(list(properties["colors"].keys()), list(properties["colors"].keys())))
+  # print (universal_set_color)
+  # print (len(universal_set_color))
+  universal_set_shape = list(itertools.product(list(properties["shapes"].keys()), list(properties["shapes"].keys())))
+  # print (universal_set_shape)
+  # print (len(universal_set_shape))
+  universal_set = list(itertools.product(universal_set_color, universal_set_shape))
+  # print (universal_set)
+  # print (len(universal_set))
+  delete_set = []
+  delete_color_set = args.no_list.split('-')
+  # print (delete_color_set)
+  for i in universal_set:
+    # print ('%s.%s'%(i[0][0], i[0][1]))
+    # if '%s.%s'%(i[0][0], i[0][1]) in delete_color_set:
+    #   continue
+    if i[1][0] != 'torus' and i[1][1] != 'torus':
+      continue
+    delete_set.append('%s_%s.%s_%s'%(i[0][0], i[1][0], i[0][1], i[1][1]))
+  # print (len(delete_set))
+  # excp_list = args.excp_list.split('-')
+  # for i in excp_list:
+  #   delete_set.append(i)
+  print (delete_set)
+  print (len(delete_set))
+  with open('rgbb_t_comb.txt', 'w') as f:
+    for i in delete_set:
+      print("\'%s\' "%i, file=f, end="")
+  abc
+  i = 0
+  # for i in range(args.num_images):
+  while True:
     img_path = img_template % (i + args.start_idx)
     scene_path = scene_template % (i + args.start_idx)
     all_scene_paths.append(scene_path)
@@ -184,15 +223,18 @@ def main(args):
     if args.save_blendfiles == 1:
       blend_path = blend_template % (i + args.start_idx)
     num_objects = random.randint(args.min_objects, args.max_objects)
-    render_scene(args,
-      # gen_list=gen_list,
+    if render_scene(args,
+      gen_list=delete_set,
       num_objects=num_objects,
       output_index=(i + args.start_idx),
       output_split=args.split,
       output_image=img_path,
       output_scene=scene_path,
       output_blendfile=blend_path,
-    )
+      ):
+      i += 1
+      if i == args.num_images:
+        break
   print (time.time() - start_time)
 
   # After rendering all images, combine the JSON files for each scene into a
@@ -216,6 +258,7 @@ def main(args):
 
 
 def render_scene(args,
+    gen_list,
     num_objects=5,
     output_index=0,
     output_split='none',
@@ -316,9 +359,25 @@ def render_scene(args,
 
   # Now make some random objects
   objects, blender_objects = add_random_objects(scene_struct, num_objects, args, camera)
+  assert len(objects) == 2, len(objects)
   # for obj in objects:
   #   print (obj["color"], obj["shape"])
-  # abc
+  # print(objects[0]["pixel_coords"][0], objects[1]["pixel_coords"][0])
+  # print ('%s_%s.%s_%s'%(objects[0]["color"], objects[0]["shape"], \
+  #                         objects[1]["color"], objects[1]["shape"]) \
+  #        )
+  if objects[0]["pixel_coords"][0] < objects[1]["pixel_coords"][0]:
+    if '%s_%s.%s_%s'%(objects[0]["color"], objects[0]["shape"], \
+                        objects[1]["color"], objects[1]["shape"]) \
+        not in gen_list:
+      print ("Wrong configuration!")
+      return False
+  else:
+    if '%s_%s.%s_%s'%(objects[1]["color"], objects[1]["shape"], \
+                        objects[0]["color"], objects[0]["shape"]) \
+        not in gen_list:
+      print ("Wrong configuration!")
+      return False
   # Render the scene and dump the scene data structure
   scene_struct['objects'] = objects
   scene_struct['relationships'] = compute_all_relationships(scene_struct)
@@ -335,6 +394,7 @@ def render_scene(args,
   if output_blendfile is not None:
     bpy.ops.wm.save_as_mainfile(filepath=output_blendfile)
 
+  return True
 
 def add_random_objects(scene_struct, num_objects, args, camera):
   """
